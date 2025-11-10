@@ -13,8 +13,6 @@ app.use(express.json());
 // travelEase-db
 // eNpq6WSxuVTu7nN4
 
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -29,13 +27,19 @@ async function run() {
     const db = client.db("travelEase-db");
     const vehicleCollection = db.collection("vehicles");
 
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-
     app.get('/vehicles', async (req, res) => {
       const result = await vehicleCollection.find().toArray();
       res.send(result);
     });
+
+    app.post('/vehicles', async (req, res) => {
+      const newVehicleData = req.body;
+      const result = await vehicleCollection.insertOne(newVehicleData);
+      res.send(result);
+    });
+
+    await client.db("admin").command({ ping: 1 });
+    console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
     app.listen(port, () => {
       console.log(`Example app listening on port ${port}`);
