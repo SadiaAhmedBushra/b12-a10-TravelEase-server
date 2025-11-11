@@ -25,6 +25,8 @@ async function run() {
     await client.connect();
     const db = client.db("travelEase-db");
     const vehicleCollection = db.collection("vehicles");
+    const bookingCollection = db.collection("bookings");
+
 
     // app.get("/vehicles", async (req, res) => {
     //   const result = await vehicleCollection.find().toArray();
@@ -83,6 +85,32 @@ async function run() {
       }
       res.send({ success: true, result });
     });
+
+    app.post("/bookings", async (req, res) => {
+  try {
+    const booking = req.body;
+    booking.createdAt = new Date();
+
+    const result = await bookingCollection.insertOne(booking);
+    res.send({ success: true, result });
+  } catch (error) {
+    res.send({ success: false, message: "Booking Failed due to Unexpected Errors" });
+  }
+});
+
+
+app.get("/bookings", async (req, res) => {
+  try {
+    const userEmail = req.query.userEmail;
+    const filter = userEmail ? { userEmail } : {};
+
+    const result = await bookingCollection.find(filter).toArray();
+    res.send(result);
+  } catch (error) {
+    res.send({ success: false, message: "Unexpected error occurred while fetching bookings." });
+  }
+});
+
 
     await client.db("admin").command({ ping: 1 });
     console.log(
