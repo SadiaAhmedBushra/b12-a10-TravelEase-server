@@ -26,9 +26,27 @@ async function run() {
     const db = client.db("travelEase-db");
     const vehicleCollection = db.collection("vehicles");
 
+    // app.get("/vehicles", async (req, res) => {
+    //   const result = await vehicleCollection.find().toArray();
+    //   res.send(result);
+    // });
+
     app.get("/vehicles", async (req, res) => {
-      const result = await vehicleCollection.find().toArray();
-      res.send(result);
+      try {
+        const { userEmail } = req.query;
+
+        let filter = {};
+        if (userEmail) {
+          filter = { userEmail: userEmail };
+        }
+
+        const result = await vehicleCollection.find(filter).toArray();
+
+         res.send(result);
+      } catch (error) {
+        console.error("Unexpected error occurred while fetching vehicles:", error);
+        res.send({ success: false, message: "Unexpected server error!" });
+      }
     });
 
     app.post("/vehicles", async (req, res) => {
