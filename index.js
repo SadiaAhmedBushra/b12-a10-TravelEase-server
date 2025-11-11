@@ -1,5 +1,5 @@
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = "mongodb+srv://travelEase-db:eNpq6WSxuVTu7nN4@cluster0.lpz93gz.mongodb.net/?appName=Cluster0";
 const cors = require('cors');
 const express = require('express');
@@ -36,6 +36,17 @@ async function run() {
       const newVehicleData = req.body;
       const result = await vehicleCollection.insertOne(newVehicleData);
       res.send(result);
+    });
+
+    app.get('/vehicles/:id', async (req, res) => {
+      const {id} = req.params;
+      // const id = req.params.id;
+      // const query = { _id: new require('mongodb').ObjectId(id) };
+      const result = await vehicleCollection.findOne({_id: new ObjectId(id)});
+      res.send({
+        success: true,
+        result
+      });
     });
 
     await client.db("admin").command({ ping: 1 });
