@@ -59,8 +59,6 @@ async function run() {
 
     app.get("/vehicles/:id", async (req, res) => {
       const { id } = req.params;
-      // const id = req.params.id;
-      // const query = { _id: new require('mongodb').ObjectId(id) };
       const result = await vehicleCollection.findOne({ _id: new ObjectId(id) });
       res.send({
         success: true,
@@ -110,6 +108,17 @@ app.get("/bookings", async (req, res) => {
     res.send({ success: false, message: "Unexpected error occurred while fetching bookings." });
   }
 });
+
+    app.delete("/vehicles/:id",  async (req, res) => {
+      const { id } = req.params;
+     
+      const result = await vehicleCollection.deleteOne({ _id: new ObjectId(id) });
+
+      res.send({
+        success: true,
+        result,
+      });
+    });
 
 
     await client.db("admin").command({ ping: 1 });
