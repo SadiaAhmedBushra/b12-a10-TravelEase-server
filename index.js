@@ -27,7 +27,6 @@ async function run() {
     const vehicleCollection = db.collection("vehicles");
     const bookingCollection = db.collection("bookings");
 
-
     // app.get("/vehicles", async (req, res) => {
     //   const result = await vehicleCollection.find().toArray();
     //   res.send(result);
@@ -44,9 +43,12 @@ async function run() {
 
         const result = await vehicleCollection.find(filter).toArray();
 
-         res.send(result);
+        res.send(result);
       } catch (error) {
-        console.error("Unexpected error occurred while fetching vehicles:", error);
+        console.error(
+          "Unexpected error occurred while fetching vehicles:",
+          error
+        );
         res.send({ success: false, message: "Unexpected server error!" });
       }
     });
@@ -85,34 +87,41 @@ async function run() {
     });
 
     app.post("/bookings", async (req, res) => {
-  try {
-    const booking = req.body;
-    booking.createdAt = new Date();
+      try {
+        const booking = req.body;
+        booking.createdAt = new Date();
 
-    const result = await bookingCollection.insertOne(booking);
-    res.send({ success: true, result });
-  } catch (error) {
-    res.send({ success: false, message: "Booking Failed due to Unexpected Errors" });
-  }
-});
+        const result = await bookingCollection.insertOne(booking);
+        res.send({ success: true, result });
+      } catch (error) {
+        res.send({
+          success: false,
+          message: "Booking Failed due to Unexpected Errors",
+        });
+      }
+    });
 
+    app.get("/bookings", async (req, res) => {
+      try {
+        const userEmail = req.query.userEmail;
+        const filter = userEmail ? { userEmail } : {};
 
-app.get("/bookings", async (req, res) => {
-  try {
-    const userEmail = req.query.userEmail;
-    const filter = userEmail ? { userEmail } : {};
+        const result = await bookingCollection.find(filter).toArray();
+        res.send(result);
+      } catch (error) {
+        res.send({
+          success: false,
+          message: "Unexpected error occurred while fetching bookings.",
+        });
+      }
+    });
 
-    const result = await bookingCollection.find(filter).toArray();
-    res.send(result);
-  } catch (error) {
-    res.send({ success: false, message: "Unexpected error occurred while fetching bookings." });
-  }
-});
-
-    app.delete("/vehicles/:id",  async (req, res) => {
+    app.delete("/vehicles/:id", async (req, res) => {
       const { id } = req.params;
-     
-      const result = await vehicleCollection.deleteOne({ _id: new ObjectId(id) });
+
+      const result = await vehicleCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
 
       res.send({
         success: true,
@@ -120,6 +129,14 @@ app.get("/bookings", async (req, res) => {
       });
     });
 
+    app.get("/latest-vehicles", async (req, res) => {
+      const result = await vehicleCollection
+        .find()
+        .sort({ createdAt: -1 })
+        .limit(6)
+        .toArray();
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
