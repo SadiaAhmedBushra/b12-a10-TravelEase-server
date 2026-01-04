@@ -24,9 +24,53 @@ async function run() {
     const vehicleCollection = db.collection("vehicles");
     const bookingCollection = db.collection("bookings");
 
-    // app.get("/vehicles", async (req, res) => {
-    //   const result = await vehicleCollection.find().toArray();
-    //   res.send(result);
+    // const usersCollection = db.collection("users"); // assuming you have a users collection
+    // app.post("/register", async (req, res) => {
+    //   const { name, email, password, photoURL } = req.body;
+    //   if (!email || !password || !name) {
+    //     return res
+    //       .status(400)
+    //       .send({ message: "Name, email and password are required" });
+    //   }
+
+    //   // Check if user already exists
+    //   const existingUser = await usersCollection.findOne({ email });
+    //   if (existingUser) {
+    //     return res.status(409).send({ message: "User already exists" });
+    //   }
+
+    //   const newUser = {
+    //     name,
+    //     email,
+    //     password, // In real app, hash the password before saving!
+    //     photoURL: photoURL || "",
+    //     role: "user",
+    //     createdAt: new Date(),
+    //   };
+
+    //   const result = await usersCollection.insertOne(newUser);
+    //   res.send({ success: true, user: newUser });
+    // });
+
+    // app.post("/login", async (req, res) => {
+    //   const { email, password } = req.body;
+
+    //   if (!email || !password) {
+    //     return res.status(400).send({ message: "Email and password required" });
+    //   }
+
+    //   // Find user by email
+    //   const user = await usersCollection.findOne({ email });
+
+    //   if (!user) {
+    //     return res.status(401).send({ message: "Invalid credentials" });
+    //   }
+
+    //   if (user.password !== password) {
+    //     return res.status(401).send({ message: "Invalid credentials" });
+    //   }
+
+    //   res.send({ success: true, user: { email: user.email, role: user.role } });
     // });
 
     app.get("/vehicles", async (req, res) => {
@@ -132,6 +176,52 @@ async function run() {
         .sort({ createdAt: -1 })
         .limit(6)
         .toArray();
+      res.send(result);
+    });
+
+    // Dashboard statistics
+    app.get("/dashboard-stats", async (req, res) => {
+      try {
+        const totalVehicles = await vehicleCollection.countDocuments();
+        const totalBookings = await bookingCollection.countDocuments();
+
+        res.send([
+          { title: "Active Vehicles on TravelEase", count: totalVehicles },
+          { title: "Total Bookings on TravelEase", count: totalBookings },
+        ]);
+      } catch (error) {
+        res.status(500).send({ success: false });
+      }
+    });
+
+    app.get("/dashboard-bookings-chart", async (req, res) => {
+      const bookings = await bookingCollection.find().toArray();
+
+      const grouped = {};
+
+      bookings.forEach((b) => {
+        const month = new Date(b.createdAt).toLocaleString("default", {
+          month: "short",
+        });
+
+        grouped[month] = (grouped[month] || 0) + 1;
+      });
+
+      const chartData = Object.keys(grouped).map((key) => ({
+        month: key,
+        bookings: grouped[key],
+      }));
+
+      res.send(chartData);
+    });
+
+    app.get("/dashboard-recent-bookings", async (req, res) => {
+      const result = await bookingCollection
+        .find()
+        .sort({ createdAt: -1 })
+        .limit(5)
+        .toArray();
+
       res.send(result);
     });
 
